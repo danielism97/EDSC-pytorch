@@ -164,11 +164,11 @@ class Network(nn.Module):
         grad_input = (grad_input[i] * 0.1 for i in range(len(grad_input)))
         grad_output = (grad_output[i] * 0.1 for i in range(len(grad_output)))
 
-    def forward(self, tensors):
-        tensorFirst = tensors[0]
-        tensorSecond = tensors[1]
+    def forward(self, frame0, frame2):
+        tensorFirst = frame0
+        tensorSecond = frame2
         if self.isMultiple:
-            tensorTime = tensors[2]
+            tensorTime = None
 
         tensorConv1 = self.moduleConv1(torch.cat([tensorFirst, tensorSecond], 1))
         tensorConv2 = self.moduleConv2(torch.nn.functional.avg_pool2d(input=tensorConv1, kernel_size=2, stride=2))
