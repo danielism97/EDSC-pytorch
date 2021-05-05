@@ -140,6 +140,10 @@ class BVIDVC(Dataset):
         self.augment_s = augment_s
         self.augment_t = augment_t
 
+        transform_list = [transforms.ToTensor()]
+
+        self.transform = transforms.Compose(transform_list)
+
         prefix = {'2k': 'A', '1080': 'B', '960': 'C', '480': 'D'}
         self.seq_path_list = [join(db_dir, f) for f in listdir(db_dir) \
                               if f.startswith(prefix[res]) and f.endswith('.yuv')]
@@ -150,16 +154,16 @@ class BVIDVC(Dataset):
         _, fname = split(self.seq_path_list[index])
         width, height = [int(i) for i in fname.split('_')[1].split('x')]
         file_size = getsize(self.seq_path_list[index])
-        num_frames = file_size // (width*height*3 // 2)
+        num_frames = file_size // (width*height*3)
         frame_idx = random.randint(1, num_frames-2)
 
-        rawFrame0 = torch.from_numpy(read_frame_yuv2rgb(stream, width, height, frame_idx-1, 8).transpose((2, 0, 1))).contiguous() #CxHxW
-        rawFrame1 = torch.from_numpy(read_frame_yuv2rgb(stream, width, height, frame_idx, 8).transpose((2, 0, 1))).contiguous()
-        rawFrame2 = torch.from_numpy(read_frame_yuv2rgb(stream, width, height, frame_idx+1, 8).transpose((2, 0, 1))).contiguous()
+        rawFrame0 = Image.fromarray(read_frame_yuv2rgb(stream, width, height, frame_idx-1, 10))
+        rawFrame1 = Image.fromarray(read_frame_yuv2rgb(stream, width, height, frame_idx, 10))
+        rawFrame2 = Image.fromarray(read_frame_yuv2rgb(stream, width, height, frame_idx+1, 10))
         stream.close()
 
-        if self.random_crop is not None:
-            i, j, h, w = transforms.RandomCrop.get_params(rawFrame1, output_size=self.random_crop)
+        if self.crop_sz is not None:
+            i, j, h, w = transforms.RandomCrop.get_params(rawFrame1, output_size=self.crop_sz)
             rawFrame0 = TF.crop(rawFrame0, i, j, h, w)
             rawFrame1 = TF.crop(rawFrame1, i, j, h, w)
             rawFrame2 = TF.crop(rawFrame2, i, j, h, w)

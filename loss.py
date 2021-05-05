@@ -16,8 +16,8 @@ class Loss(nn.Module):
         gt_row_diff = self.l1(gt[:,:,1:,:], gt[:,:,:-1,:])
         gt_col_diff = self.l1(gt[:,:,:,1:], gt[:,:,:,:-1])
 
-        loss_gdl = self.l1(out_row_diff - gt_row_diff) + \
-                   self.l1(out_col_diff - gt_col_diff)
+        loss_gdl = self.l1(out_row_diff, gt_row_diff) + \
+                   self.l1(out_col_diff, gt_col_diff)
 
         return loss_cb + loss_gdl
 

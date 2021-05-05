@@ -165,6 +165,27 @@ class Network(nn.Module):
         grad_output = (grad_output[i] * 0.1 for i in range(len(grad_output)))
 
     def forward(self, frame0, frame2):
+        h0 = int(list(frame0.size())[2])
+        w0 = int(list(frame0.size())[3])
+        h2 = int(list(frame2.size())[2])
+        w2 = int(list(frame2.size())[3])
+        if h0 != h2 or w0 != w2:
+            sys.exit('Frame sizes do not match')
+
+        h_padded = False
+        w_padded = False
+        if h0 % 32 != 0:
+            pad_h = 32 - (h0 % 32)
+            frame0 = F.pad(frame0, (0, 0, 0, pad_h), mode='reflect')
+            frame2 = F.pad(frame2, (0, 0, 0, pad_h), mode='reflect')
+            h_padded = True
+
+        if w0 % 32 != 0:
+            pad_w = 32 - (w0 % 32)
+            frame0 = F.pad(frame0, (0, pad_w, 0, 0), mode='reflect')
+            frame2 = F.pad(frame2, (0, pad_w, 0, 0), mode='reflect')
+            w_padded = True
+
         tensorFirst = frame0
         tensorSecond = frame2
         if self.isMultiple:
@@ -224,9 +245,14 @@ class Network(nn.Module):
             tensorDot2 = dsepconv.FunctionDSepconv(tensorSecond, v2, h2, offset2x, offset2y, mask2)
 
         if self.useBias:
-                return tensorDot1 + tensorDot2 + self.moduleBias(tensorCombine)
+            out = tensorDot1 + tensorDot2 + self.moduleBias(tensorCombine)
         else:
-                return tensorDot1 + tensorDot2
+            out = tensorDot1 + tensorDot2
+        if h_padded:
+            out = out[:, :, 0:h0, :]
+        if w_padded:
+            out = out[:, :, :, 0:w0]
+        return out
             
 
     # end forward
