@@ -68,7 +68,7 @@ def main():
     start_epoch = 0
     if args.load is not None:
         checkpoint = torch.load(args.load)
-        model.load(checkpoint['state_dict'])
+        model.load_state_dict(checkpoint['state_dict'])
         start_epoch = checkpoint['epoch']
 
     my_trainer = Trainer(args, train_loader, TestDB, model, loss, start_epoch)
